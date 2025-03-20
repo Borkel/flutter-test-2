@@ -12,31 +12,35 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Notas',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink), //no cambia nada aun
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
       ),
-      home: const NotesPage(),
+      home: const HomePage(),
     );
   }
 }
 
-class NotesPage extends StatefulWidget {
-  const NotesPage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<NotesPage> createState() => _NotesPageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _NotesPageState extends State<NotesPage> {
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
   final List<String> _notes = [];
   final TextEditingController _controller = TextEditingController();
 
-  void _addNote() {
-    if (_controller.text.isNotEmpty) { //si la nota tiene texto, la añade
-      setState(() {
-        _notes.add(_controller.text);
-        _controller.clear();
-      });
-    }
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _addNote(String note) {
+    setState(() {
+      _notes.add(note);
+    });
   }
 
   void _removeNote(int index) {
@@ -49,39 +53,99 @@ class _NotesPageState extends State<NotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notas'),
+        title: const Text('Notas App'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Escribe una nota',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addNote,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _notes.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_notes[index]),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _removeNote(index),
-                    ),
-                  );
+      body: _selectedIndex == 0
+          ? NotesPage(
+        notes: _notes,
+        controller: _controller,
+        onAddNote: _addNote,
+        onRemoveNote: _removeNote,
+      )
+          : const SecondPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.note),
+            label: 'Notas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info),
+            label: 'Segunda Página',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class NotesPage extends StatelessWidget {
+  final List<String> notes;
+  final TextEditingController controller;
+  final Function(String) onAddNote;
+  final Function(int) onRemoveNote;
+
+  const NotesPage({
+    super.key,
+    required this.notes,
+    required this.controller,
+    required this.onAddNote,
+    required this.onRemoveNote,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: 'Escribe una nota',
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  if (controller.text.isNotEmpty) {
+                    onAddNote(controller.text);
+                    controller.clear();
+                  }
                 },
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView.builder(
+              itemCount: notes.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(notes[index]),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => onRemoveNote(index),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SecondPage extends StatelessWidget {
+  const SecondPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        'Segunda Página',
+        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
   }
