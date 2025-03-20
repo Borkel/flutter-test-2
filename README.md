@@ -1,6 +1,6 @@
 # test2
 
-A new Flutter project.
+Codigo sencillo para añadir y quitar notas de texto
 
 ## Getting Started
 
